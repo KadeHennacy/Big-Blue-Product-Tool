@@ -8,8 +8,8 @@ import {
     View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { tweets } from "../data/tweets";
-import Tweet from "../components/Tweet";
+import { tweets } from "../../data/tweets";
+import Tweet from "../../components/Tweet";
 import { useNavigation } from "@react-navigation/native";
 import { useLayoutEffect } from "react";
 
@@ -21,7 +21,7 @@ export default function Feed() {
             headerLeft: () => (
                 <Pressable onPress={() => navigation.openDrawer()}>
                     <Image
-                        source={require("../assets/beto.jpeg")}
+                        source={require("../../assets/beto.jpeg")}
                         style={{ width: 40, height: 40, borderRadius: 100, marginLeft: 15 }}
                     />
                 </Pressable>
