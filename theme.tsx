@@ -1,6 +1,11 @@
-import { createContext, useState, useMemo } from "react";
+import { createContext, useState, useMemo, useEffect } from "react";
 import { createTheme } from "@mui/material/styles";
-import { autocompleteClasses } from "@mui/material";
+import {
+  CssBaseline,
+  PaletteMode,
+  ThemeProvider,
+  autocompleteClasses,
+} from "@mui/material";
 
 export const tokens = {
   grey: {
@@ -93,11 +98,11 @@ export const tokens = {
   },
 };
 //Parameter 'mode' implicitly has an 'any' type.ts(7006)
-export const themeSettings = (mode) => {
+export const getDesignTokens = (mode: PaletteMode) => {
   const colors = tokens;
   return {
     palette: {
-      mode: mode,
+      mode,
       ...(mode === "dark"
         ? {
             primary: {
@@ -203,27 +208,31 @@ export const themeSettings = (mode) => {
     },
   };
 };
-
 export const ColorModeContext = createContext({
   toggleColorMode: () => {},
 });
 
-export const useMode = () => {
-  const [mode, setMode] = useState(localStorage.getItem("mode") || "dark");
-
+export const Theme = ({ children }) => {
+  const [mode, setMode] = useState<PaletteMode>("light");
   const colorMode = useMemo(
     () => ({
+      // The dark mode switch would invoke this method
       toggleColorMode: () => {
-        const newMode = mode === "light" ? "dark" : "light";
-        setMode(newMode);
-        localStorage.setItem("mode", newMode);
+        setMode((prevMode: PaletteMode) =>
+          prevMode === "light" ? "dark" : "light"
+        );
       },
     }),
-    [mode]
+    []
   );
-  /* Argument of type '{ palette: { primary: { light: string; main: string; dark: string; }; info: { main: string; light: string; }; success: { main: string; light: string; }; warning: { main: string; light: string; }; danger: { main: string; light: string; }; background: { ...; }; text: { ...; }; mode: any; }; typography: { ...; }; compo...' is not assignable to parameter of type 'ThemeOptions'.
-  The types of 'palette.text' are incompatible between these types.
-  Type '{ default: string; inverse: string; }' has no properties in common with type 'Partial<TypeText>'.ts(2345)*/
-  const theme = useMemo(() => createTheme(themeSettings(mode)), [mode]);
-  return [theme, colorMode];
+  const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
+
+  return (
+    <ColorModeContext.Provider value={colorMode}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        {children}
+      </ThemeProvider>
+    </ColorModeContext.Provider>
+  );
 };
