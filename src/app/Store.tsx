@@ -1,7 +1,7 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistStore, persistReducer, Persistor } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-import counterReducer from "../features/counter/counterSlice";
+import counterReducer from "../features/browse/browse";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { PropsWithChildren } from "react";
