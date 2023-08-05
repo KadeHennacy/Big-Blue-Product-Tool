@@ -2,8 +2,6 @@ import { createContext, useState, useMemo } from "react";
 import { createTheme } from "@mui/material/styles";
 import { autocompleteClasses } from "@mui/material";
 
-// this used to take in mode and invert everything for each mode but I see no point. Colors from the palette change during the mode, these are for custom coloring
-
 export const tokens = {
   grey: {
     100: "#303030",
@@ -94,7 +92,7 @@ export const tokens = {
     900: "#2b210c",
   },
 };
-
+//Parameter 'mode' implicitly has an 'any' type.ts(7006)
 export const themeSettings = (mode) => {
   const colors = tokens;
   return {
@@ -206,7 +204,6 @@ export const themeSettings = (mode) => {
   };
 };
 
-// context for color mode. ToggleColorMode is empty by default in case the context is consumed outside a provider. The provider is set to colorMode later in app.js, which defines it.
 export const ColorModeContext = createContext({
   toggleColorMode: () => {},
 });
@@ -214,7 +211,6 @@ export const ColorModeContext = createContext({
 export const useMode = () => {
   const [mode, setMode] = useState(localStorage.getItem("mode") || "dark");
 
-  // in app.js this is set as the provider for the colorModeContext we define above, making this function available to all child components by calling useContext(ColorModeContext).toggleColorMode()
   const colorMode = useMemo(
     () => ({
       toggleColorMode: () => {
@@ -225,8 +221,9 @@ export const useMode = () => {
     }),
     [mode]
   );
-
-  // in app.js, this is set as the provider for the ThemeProvider context provider from mui, which makes our theme settings available throughout the app with the hook useTheme() which has attributes of pallet and mode
+  /* Argument of type '{ palette: { primary: { light: string; main: string; dark: string; }; info: { main: string; light: string; }; success: { main: string; light: string; }; warning: { main: string; light: string; }; danger: { main: string; light: string; }; background: { ...; }; text: { ...; }; mode: any; }; typography: { ...; }; compo...' is not assignable to parameter of type 'ThemeOptions'.
+  The types of 'palette.text' are incompatible between these types.
+  Type '{ default: string; inverse: string; }' has no properties in common with type 'Partial<TypeText>'.ts(2345)*/
   const theme = useMemo(() => createTheme(themeSettings(mode)), [mode]);
   return [theme, colorMode];
 };

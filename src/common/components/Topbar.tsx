@@ -1,8 +1,8 @@
 import { Box, IconButton, useTheme } from "@mui/material";
 import { useContext } from "react";
 import { ColorModeContext, tokens } from "../../../theme";
-import logo from "../../assets/logo.svg";
-import darkLogo from "../../assets/darkLogo.svg";
+// import logo from "../../assets/logo.svg";
+// import darkLogo from "../../assets/darkLogo.svg";
 import InputBase from "@mui/material/InputBase";
 import LightModeOutlinedIcon from "@mui/icons-material/LightModeOutlined";
 import DarkModeOutlinedIcon from "@mui/icons-material/DarkModeOutlined";
@@ -16,7 +16,6 @@ import { Link, useLocation } from "react-router-dom";
 
 const Topbar = () => {
   const location = useLocation();
-  const token = useSelector((state) => state.auth.token);
   const theme = useTheme();
   const colors = tokens;
   const colorMode = useContext(ColorModeContext);
@@ -27,11 +26,12 @@ const Topbar = () => {
 
   return (
     <Box
+      component="div"
       p={1}
       px={3}
       display="flex"
       justifyContent="space-between"
-      backgroundColor={theme.palette.primary.dark}
+      bgcolor={theme.palette.primary.dark}
       boxShadow={location.pathname === "/login" ? 5 : 0}
       borderBottom={`2px solid ${theme.palette.primary.light}`}
     >
@@ -43,7 +43,7 @@ const Topbar = () => {
         {/* here is a link to / */}
         <Link to="/">
           <StyledImg
-            src={theme.palette.mode === "dark" ? logo : darkLogo}
+            // src={theme.palette.mode === "dark" ? logo : darkLogo}
             alt="logo"
           />
         </Link>
@@ -58,7 +58,7 @@ const Topbar = () => {
             <LightModeOutlinedIcon />
           )}
         </IconButton>
-        {token ? (
+        {/* {token ? (
           <>
             <IconButton>
               <NotificationsOutlinedIcon />
@@ -72,7 +72,7 @@ const Topbar = () => {
           </>
         ) : (
           <></>
-        )}
+        )} */}
       </Box>
     </Box>
   );
