@@ -7,6 +7,8 @@ import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import { useDispatch } from "react-redux";
+import { addLot } from "../../features/browse/browse";
 
 const Topbar = () => {
   const theme = useTheme();
@@ -22,16 +24,19 @@ const Topbar = () => {
     backgroundColor: theme.palette.primary.light,
   };
 
+  const dispatch = useDispatch();
+
+  const handleNewLot = () => {
+    dispatch(addLot());
+    navigate("/product");
+  };
+
   const renderButtons = () => {
     switch (location.pathname) {
       case "/":
         return (
           <>
-            <Button
-              color="inherit"
-              sx={buttonStyle}
-              onClick={() => navigate("/product")}
-            >
+            <Button color="inherit" sx={buttonStyle} onClick={handleNewLot}>
               Start New Lot
             </Button>
             <Button
@@ -70,11 +75,7 @@ const Topbar = () => {
         );
       case "/browse":
         return (
-          <Button
-            color="inherit"
-            sx={buttonStyle}
-            onClick={() => navigate("/product")}
-          >
+          <Button color="inherit" sx={buttonStyle} onClick={handleNewLot}>
             New Lot
           </Button>
         );
