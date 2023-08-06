@@ -10,7 +10,7 @@ import {
   InputLabel,
   FormControl,
 } from "@mui/material";
-import { addProduct } from "../browse/browse";
+import { addProduct, updateProduct } from "../browse/browse";
 import { Product } from "../browse/browse";
 
 interface ProductProps {
@@ -33,11 +33,19 @@ const validationSchema = Yup.object({
   image: Yup.mixed().required("A file is required"),
 });
 
-const Product: React.FC<ProductProps> = ({ lotId }) => {
+const Product: React.FC = () => {
   const dispatch = useDispatch();
+  const currentLotIndex = useSelector((state) => state.browse.currentLotIndex);
+  const currentProductIndex = useSelector(
+    (state) => state.browse.currentProductIndex
+  );
+  const currentProduct = useSelector(
+    (state) => state.browse.lots[currentLotIndex].items[currentProductIndex]
+  );
+  const isEditing = useSelector((state) => state.browse.isEditing);
 
   const formik = useFormik({
-    initialValues: {
+    initialValues: currentProduct || {
       name: "",
       description: "",
       category: "",
@@ -47,20 +55,31 @@ const Product: React.FC<ProductProps> = ({ lotId }) => {
     validationSchema,
     onSubmit: (values: FormValues) => {
       const newProduct: Product = {
-        id: Date.now().toString(),
+        id: isEditing ? currentProduct.id : Date.now().toString(),
         name: values.name,
         description: values.description,
         category: values.category,
         price: values.price,
-        image: values.image ? values.image.name : "", // You might want to handle this differently, e.g., upload it to a server and get the URL
+        image: values.image ? values.image.name : "",
       };
 
-      dispatch(addProduct(newProduct));
-
-      console.log(`Product associated with lot: ${lotId}`);
+      if (isEditing) {
+        // Update the existing product
+        console.log(
+          `Updating product ${currentProduct.id} current lot ${currentLotIndex} current product ${currentProductIndex}`
+        );
+        dispatch(updateProduct(newProduct));
+      } else {
+        // Add a new product
+        console.log(
+          `adding product current lot ${currentLotIndex} current product ${currentProductIndex}`
+        );
+        dispatch(addProduct(newProduct));
+      }
 
       formik.resetForm();
     },
+    enableReinitialize: true,
   });
 
   return (
