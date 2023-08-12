@@ -56,6 +56,13 @@ const browseSlice = createSlice({
       state.currentProductIndex =
         state.lots[state.currentLotIndex].items.length - 1;
     },
+    deleteProduct: (state, action: PayloadAction<number>) => {
+      state.lots[state.currentLotIndex].items.splice(action.payload, 1);
+      state.lots[state.currentLotIndex].lastModified = Date.now().toString();
+    },
+    deleteLot: (state, action: PayloadAction<number>) => {
+      state.lots.splice(action.payload, 1);
+    },
     setCurrentLotIndex: (state, action: PayloadAction<number>) => {
       state.currentLotIndex = action.payload;
     },
@@ -84,5 +91,7 @@ export const {
   updateProduct,
   setCurrentProductIndex,
   setEditing,
+  deleteProduct,
+  deleteLot,
 } = browseSlice.actions;
 export default browseSlice.reducer;

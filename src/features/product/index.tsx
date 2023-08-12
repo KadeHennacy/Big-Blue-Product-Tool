@@ -9,9 +9,13 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
+  Snackbar,
+  Box,
 } from "@mui/material";
 import { addProduct, updateProduct } from "../browse/browse";
 import { Product } from "../browse/browse";
+import { useNavigate } from "react-router-dom";
+import Resizer from "react-image-file-resizer";
 
 interface ProductProps {
   lotId: number;
@@ -24,13 +28,35 @@ interface FormValues {
   price: number;
   image: File | null;
 }
+const patternTwoDigitsAfterDecimal = /^\d+(\.\d{0,2})?$/;
 
 const validationSchema = Yup.object({
   name: Yup.string().required("Required"),
   description: Yup.string().required("Required"),
   category: Yup.string().required("Required"),
-  price: Yup.number().required("Required").positive().integer(),
-  image: Yup.mixed().required("A file is required"),
+  price: Yup.number()
+    .required("Required")
+    .positive()
+    .test("two-decimal", "Price must have 2 decimal points or less", (value) =>
+      patternTwoDigitsAfterDecimal.test(value)
+    ),
+  image: Yup.mixed()
+    .required("An image is required")
+    .test("fileType", "Unsupported File Format", (value) => {
+      if (value) {
+        const supportedFormats = [
+          "image/jpg",
+          "image/jpeg",
+          "image/gif",
+          "image/png",
+        ];
+        return supportedFormats.includes(value.type);
+      }
+      return false;
+    })
+    .test("fileSize", "File Size is too large", (value) => {
+      return value && value.size <= 1048576; // 1MB
+    }),
 });
 
 const Product: React.FC = () => {
@@ -43,15 +69,26 @@ const Product: React.FC = () => {
     (state) => state.browse.lots[currentLotIndex].items[currentProductIndex]
   );
   const isEditing = useSelector((state) => state.browse.isEditing);
+  const navigate = useNavigate();
+  const [openSnackbar, setOpenSnackbar] = React.useState(false);
+  const handleOpenSnackbar = () => {
+    setOpenSnackbar(true);
+  };
+  const handleCloseSnackbar = (event, reason) => {
+    setOpenSnackbar(false);
+  };
 
   const formik = useFormik({
-    initialValues: currentProduct || {
-      name: "",
-      description: "",
-      category: "",
-      price: 0,
-      image: null,
-    },
+    initialValues:
+      isEditing && currentProduct
+        ? currentProduct
+        : {
+            name: "",
+            description: "",
+            category: "",
+            price: "",
+            image: null,
+          },
     validationSchema,
     onSubmit: (values: FormValues) => {
       const newProduct: Product = {
@@ -60,94 +97,127 @@ const Product: React.FC = () => {
         description: values.description,
         category: values.category,
         price: values.price,
-        image: values.image ? values.image.name : "",
+        image: values.image ? URL.createObjectURL(values.image) : "",
       };
 
       if (isEditing) {
-        // Update the existing product
         console.log(
           `Updating product ${currentProduct.id} current lot ${currentLotIndex} current product ${currentProductIndex}`
         );
         dispatch(updateProduct(newProduct));
+        navigate("/lot");
       } else {
-        // Add a new product
         console.log(
           `adding product current lot ${currentLotIndex} current product ${currentProductIndex}`
         );
         dispatch(addProduct(newProduct));
+        handleOpenSnackbar();
       }
 
       formik.resetForm();
+      console.log("Form submitted");
     },
     enableReinitialize: true,
   });
 
+  const inputStyle = {
+    marginBottom: "1rem",
+  };
+
   return (
-    <form onSubmit={formik.handleSubmit}>
-      <TextField
-        fullWidth
-        id="name"
-        name="name"
-        label="Name"
-        value={formik.values.name}
-        onChange={formik.handleChange}
-        error={formik.touched.name && Boolean(formik.errors.name)}
-        helperText={formik.touched.name && formik.errors.name}
+    <Box sx={{ padding: 3 }}>
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        message="Item saved successfully"
       />
-      <TextField
-        fullWidth
-        multiline
-        rows={4}
-        id="description"
-        name="description"
-        label="Description"
-        value={formik.values.description}
-        onChange={formik.handleChange}
-        error={formik.touched.description && Boolean(formik.errors.description)}
-        helperText={formik.touched.description && formik.errors.description}
-      />
-      <FormControl fullWidth>
-        <InputLabel id="category-label">Category</InputLabel>
-        <Select
-          labelId="category-label"
-          id="category"
-          name="category"
-          value={formik.values.category}
-          onChange={formik.handleChange}
-          error={formik.touched.category && Boolean(formik.errors.category)}
+      <form onSubmit={formik.handleSubmit}>
+        <Box
+          sx={{
+            height: "79vh",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+          }}
         >
-          {/* Add your categories here */}
-          <MenuItem value="category1">Category 1</MenuItem>
-          <MenuItem value="category2">Category 2</MenuItem>
-          <MenuItem value="category3">Category 3</MenuItem>
-        </Select>
-      </FormControl>
-      <TextField
-        fullWidth
-        id="price"
-        name="price"
-        label="Price"
-        type="number"
-        value={formik.values.price}
-        onChange={formik.handleChange}
-        error={formik.touched.price && Boolean(formik.errors.price)}
-        helperText={formik.touched.price && formik.errors.price}
-      />
-      <input
-        id="image"
-        name="image"
-        type="file"
-        onChange={(event) => {
-          formik.setFieldValue(
-            "image",
-            event.currentTarget.files ? event.currentTarget.files[0] : null
-          );
-        }}
-      />
-      <Button color="primary" variant="contained" fullWidth type="submit">
-        Save
-      </Button>
-    </form>
+          <TextField
+            fullWidth
+            id="name"
+            name="name"
+            label="Name"
+            value={formik.values.name}
+            onChange={formik.handleChange}
+            error={formik.touched.name && Boolean(formik.errors.name)}
+            helperText={formik.touched.name && formik.errors.name}
+          />
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            id="description"
+            name="description"
+            label="Description"
+            value={formik.values.description}
+            onChange={formik.handleChange}
+            error={
+              formik.touched.description && Boolean(formik.errors.description)
+            }
+            helperText={formik.touched.description && formik.errors.description}
+          />
+          <FormControl fullWidth>
+            <InputLabel sx={{ top: -1 }} id="category-label">
+              Category
+            </InputLabel>
+            <Select
+              labelId="category-label"
+              id="category"
+              name="category"
+              value={formik.values.category}
+              onChange={formik.handleChange}
+              error={formik.touched.category && Boolean(formik.errors.category)}
+            >
+              {/* Add your categories here */}
+              <MenuItem value="category1">Category 1</MenuItem>
+              <MenuItem value="category2">Category 2</MenuItem>
+              <MenuItem value="category3">Category 3</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            fullWidth
+            id="price"
+            name="price"
+            label="Price"
+            type="number"
+            value={formik.values.price}
+            onChange={formik.handleChange}
+            error={formik.touched.price && Boolean(formik.errors.price)}
+            helperText={formik.touched.price && formik.errors.price}
+          />
+          <TextField
+            id="image"
+            name="image"
+            type="file"
+            label="Image"
+            accept="image/*"
+            InputLabelProps={{
+              shrink: true,
+            }}
+            onChange={(event) => {
+              formik.setFieldValue(
+                "image",
+                event.currentTarget.files ? event.currentTarget.files[0] : null
+              );
+            }}
+            error={formik.touched.image && Boolean(formik.errors.image)}
+            helperText={formik.touched.image && formik.errors.image}
+          />
+          <Button color="primary" variant="contained" fullWidth type="submit">
+            Save
+          </Button>
+        </Box>
+      </form>
+    </Box>
   );
 };
 
