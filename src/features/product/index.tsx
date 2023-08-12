@@ -26,7 +26,7 @@ interface FormValues {
   description: string;
   category: string;
   price: number;
-  image: File | null;
+  image: string;
 }
 const patternTwoDigitsAfterDecimal = /^\d+(\.\d{0,2})?$/;
 
@@ -40,22 +40,19 @@ const validationSchema = Yup.object({
     .test("two-decimal", "Price must have 2 decimal points or less", (value) =>
       patternTwoDigitsAfterDecimal.test(value)
     ),
-  image: Yup.mixed()
+  image: Yup.string()
     .required("An image is required")
     .test("fileType", "Unsupported File Format", (value) => {
       if (value) {
-        const supportedFormats = [
-          "image/jpg",
-          "image/jpeg",
-          "image/gif",
-          "image/png",
+        const supportedPrefixes = [
+          "data:image/jpg;",
+          "data:image/jpeg;",
+          "data:image/gif;",
+          "data:image/png;",
         ];
-        return supportedFormats.includes(value.type);
+        return supportedPrefixes.some((prefix) => value.startsWith(prefix));
       }
       return false;
-    })
-    .test("fileSize", "File Size is too large", (value) => {
-      return value && value.size <= 1048576; // 1MB
     }),
 });
 
@@ -77,6 +74,21 @@ const Product: React.FC = () => {
   const handleCloseSnackbar = (event, reason) => {
     setOpenSnackbar(false);
   };
+  const resizeFile = (file) =>
+    new Promise((resolve) => {
+      Resizer.imageFileResizer(
+        file,
+        800,
+        800,
+        "jpg", // or "PNG" or other file types
+        100,
+        0,
+        (uri) => {
+          resolve(uri);
+        },
+        "base64"
+      );
+    });
 
   const formik = useFormik({
     initialValues:
@@ -97,7 +109,7 @@ const Product: React.FC = () => {
         description: values.description,
         category: values.category,
         price: values.price,
-        image: values.image ? URL.createObjectURL(values.image) : "",
+        image: values.image,
       };
 
       if (isEditing) {
@@ -203,11 +215,20 @@ const Product: React.FC = () => {
             InputLabelProps={{
               shrink: true,
             }}
-            onChange={(event) => {
-              formik.setFieldValue(
-                "image",
-                event.currentTarget.files ? event.currentTarget.files[0] : null
-              );
+            // onChange={(event) => {
+            //   formik.setFieldValue(
+            //     "image",
+            //     event.currentTarget.files ? event.currentTarget.files[0] : null
+            //   );
+            // }}
+            onChange={async (event) => {
+              const file = event.currentTarget.files
+                ? event.currentTarget.files[0]
+                : null;
+              if (file) {
+                const resizedImage = await resizeFile(file);
+                formik.setFieldValue("image", resizedImage);
+              }
             }}
             error={formik.touched.image && Boolean(formik.errors.image)}
             helperText={formik.touched.image && formik.errors.image}
