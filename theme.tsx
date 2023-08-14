@@ -225,7 +225,10 @@ export const Theme = ({ children }) => {
     }),
     []
   );
-  const theme = useMemo(() => createTheme(getDesignTokens(mode)), [mode]);
+  const theme = useMemo(
+    () => createTheme(getDesignTokens(mode) as any),
+    [mode]
+  );
 
   return (
     <ColorModeContext.Provider value={colorMode}>

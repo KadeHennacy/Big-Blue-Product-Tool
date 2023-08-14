@@ -17,12 +17,18 @@ import {
   DialogTitle,
   Button,
 } from "@mui/material";
+import { wrap } from "module";
+import { RootState } from "../../app/Store";
 
 const Lot: React.FC = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const currentLotIndex = useSelector((state) => state.browse.currentLotIndex);
-  const lot = useSelector((state) => state.browse.lots[currentLotIndex]);
+  const currentLotIndex = useSelector(
+    (state: RootState) => state.browse.currentLotIndex
+  );
+  const lot = useSelector(
+    (state: RootState) => state.browse.lots[currentLotIndex]
+  );
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [productToDelete, setProductToDelete] = React.useState<number | null>(
     null
@@ -49,7 +55,11 @@ const Lot: React.FC = () => {
   };
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box
+      sx={{
+        padding: 3,
+      }}
+    >
       <Dialog
         open={deleteDialogOpen}
         onClose={handleCloseDeleteDialog}
@@ -82,35 +92,6 @@ const Lot: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <Box>
-        <h2>Products in Lot {currentLotIndex + 1}</h2>
-        {lot?.items.map((product, index) => (
-          <div key={product.id} onClick={() => handleProductClick(index)}>
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              <h3>{product.name}</h3>
-              <DeleteIcon
-                sx={{
-                  color: theme.palette.error.main,
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setProductToDelete(index);
-                  handleOpenDeleteDialog();
-                }}
-              />
-            </Box>
-            <p>{product.description}</p>
-            <p>Category: {product.category}</p>
-            <p>Price: ${product.price}</p>
-            <img src={product.image} alt={product.name} />
-          </div>
-        ))}
-      </Box>
       <Box
         sx={{
           position: "fixed",
@@ -133,10 +114,77 @@ const Lot: React.FC = () => {
         >
           <AddIcon
             sx={{
-              color: "text.default",
+              color: "text.primary",
             }}
           />
         </IconButton>
+      </Box>
+      <Box>
+        <h2
+          style={{
+            marginBottom: "5px",
+            paddingBottom: "5px",
+            borderBottom: "1px solid #ccc",
+          }}
+        >
+          Products in Lot {currentLotIndex + 1}
+        </h2>
+        {lot?.items.map((product, index) => (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              borderBottom: "1px solid #ccc",
+              paddingY: 1,
+            }}
+            key={product.id}
+            onClick={() => handleProductClick(index)}
+          >
+            <Box
+              sx={{
+                display: "flex",
+              }}
+            >
+              <Box
+                sx={{
+                  width: 80,
+                  height: 80,
+                  overflow: "hidden",
+                  marginRight: 2,
+                }}
+              >
+                <img
+                  style={{
+                    objectFit: "cover",
+                    display: "block",
+                    height: "100%",
+                    width: "100%",
+                  }}
+                  src={product.image}
+                  alt={product.name}
+                />
+              </Box>
+              <Box>
+                <h3>{product.name}</h3>
+                <p>{product.description}</p>
+                <p>Category: {product.category}</p>
+                <p>Price: ${product.price}</p>
+              </Box>
+            </Box>
+            <Box>
+              <DeleteIcon
+                sx={{
+                  color: theme.palette.error.main,
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setProductToDelete(index);
+                  handleOpenDeleteDialog();
+                }}
+              />
+            </Box>
+          </Box>
+        ))}
       </Box>
     </Box>
   );

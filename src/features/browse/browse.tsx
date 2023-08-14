@@ -9,8 +9,9 @@ export type Product = {
   name: string;
   description: string;
   category: string;
-  price: number;
+  price: string;
   image: string;
+  imageName: string;
 };
 
 export type Lot = {
@@ -55,6 +56,7 @@ const browseSlice = createSlice({
       state.lots[state.currentLotIndex].lastModified = Date.now().toString();
       state.currentProductIndex =
         state.lots[state.currentLotIndex].items.length - 1;
+      state.lots[state.currentLotIndex].thumbnail = action.payload.image;
     },
     deleteProduct: (state, action: PayloadAction<number>) => {
       state.lots[state.currentLotIndex].items.splice(action.payload, 1);

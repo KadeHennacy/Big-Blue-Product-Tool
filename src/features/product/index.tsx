@@ -16,6 +16,8 @@ import { addProduct, updateProduct } from "../browse/browse";
 import { Product } from "../browse/browse";
 import { useNavigate } from "react-router-dom";
 import Resizer from "react-image-file-resizer";
+import { RootState } from "../../app/Store";
+import { type } from "os";
 
 interface ProductProps {
   lotId: number;
@@ -25,8 +27,9 @@ interface FormValues {
   name: string;
   description: string;
   category: string;
-  price: number;
+  price: string;
   image: string;
+  imageName: string;
 }
 const patternTwoDigitsAfterDecimal = /^\d+(\.\d{0,2})?$/;
 
@@ -34,9 +37,12 @@ const validationSchema = Yup.object({
   name: Yup.string().required("Required"),
   description: Yup.string().required("Required"),
   category: Yup.string().required("Required"),
-  price: Yup.number()
+  price: Yup.string()
     .required("Required")
-    .positive()
+    .test("is-positive", "Price must be positive", (value) => {
+      const numberValue = parseFloat(value);
+      return numberValue > 0;
+    })
     .test("two-decimal", "Price must have 2 decimal points or less", (value) =>
       patternTwoDigitsAfterDecimal.test(value)
     ),
@@ -58,14 +64,17 @@ const validationSchema = Yup.object({
 
 const Product: React.FC = () => {
   const dispatch = useDispatch();
-  const currentLotIndex = useSelector((state) => state.browse.currentLotIndex);
+  const currentLotIndex = useSelector(
+    (state: RootState) => state.browse.currentLotIndex
+  );
   const currentProductIndex = useSelector(
-    (state) => state.browse.currentProductIndex
+    (state: RootState) => state.browse.currentProductIndex
   );
   const currentProduct = useSelector(
-    (state) => state.browse.lots[currentLotIndex].items[currentProductIndex]
+    (state: RootState) =>
+      state.browse.lots[currentLotIndex].items[currentProductIndex]
   );
-  const isEditing = useSelector((state) => state.browse.isEditing);
+  const isEditing = useSelector((state: RootState) => state.browse.isEditing);
   const navigate = useNavigate();
   const [openSnackbar, setOpenSnackbar] = React.useState(false);
   const handleOpenSnackbar = () => {
@@ -78,9 +87,9 @@ const Product: React.FC = () => {
     new Promise((resolve) => {
       Resizer.imageFileResizer(
         file,
-        800,
-        800,
-        "jpg", // or "PNG" or other file types
+        400,
+        400,
+        "png", // or "PNG" or other file types
         100,
         0,
         (uri) => {
@@ -99,7 +108,8 @@ const Product: React.FC = () => {
             description: "",
             category: "",
             price: "",
-            image: null,
+            image: "",
+            imageName: "",
           },
     validationSchema,
     onSubmit: (values: FormValues) => {
@@ -110,6 +120,7 @@ const Product: React.FC = () => {
         category: values.category,
         price: values.price,
         image: values.image,
+        imageName: values.imageName,
       };
 
       if (isEditing) {
@@ -161,7 +172,11 @@ const Product: React.FC = () => {
             value={formik.values.name}
             onChange={formik.handleChange}
             error={formik.touched.name && Boolean(formik.errors.name)}
-            helperText={formik.touched.name && formik.errors.name}
+            helperText={
+              formik.touched.name && typeof formik.errors.name === "string"
+                ? formik.errors.name
+                : ""
+            }
           />
           <TextField
             fullWidth
@@ -175,7 +190,13 @@ const Product: React.FC = () => {
             error={
               formik.touched.description && Boolean(formik.errors.description)
             }
-            helperText={formik.touched.description && formik.errors.description}
+            // helperText={formik.touched.description && formik.errors.description}
+            helperText={
+              formik.touched.description &&
+              typeof formik.errors.description === "string"
+                ? formik.errors.description
+                : ""
+            }
           />
           <FormControl fullWidth>
             <InputLabel sx={{ top: -1 }} id="category-label">
@@ -189,10 +210,23 @@ const Product: React.FC = () => {
               onChange={formik.handleChange}
               error={formik.touched.category && Boolean(formik.errors.category)}
             >
-              {/* Add your categories here */}
-              <MenuItem value="category1">Category 1</MenuItem>
-              <MenuItem value="category2">Category 2</MenuItem>
-              <MenuItem value="category3">Category 3</MenuItem>
+              <MenuItem value="Accessories">Accessories</MenuItem>
+              <MenuItem value="Bottoms">Bottoms</MenuItem>
+              <MenuItem value="Clearance">Clearance</MenuItem>
+              <MenuItem value="Dresses">Dresses</MenuItem>
+              <MenuItem value="Electronics">Electronics</MenuItem>
+              <MenuItem value="Furniture">Furniture</MenuItem>
+              <MenuItem value="Home & Personal Care">
+                Home & Personal Care
+              </MenuItem>
+              <MenuItem value="Kitchenware">Kitchenware</MenuItem>
+              <MenuItem value="Miscellaneous">Miscellaneous</MenuItem>
+              <MenuItem value="Outerwear">Outerwear</MenuItem>
+              <MenuItem value="Professional Wear">Professional Wear</MenuItem>
+              <MenuItem value="School Supplies">School Supplies</MenuItem>
+              <MenuItem value="Shoes">Shoes</MenuItem>
+              <MenuItem value="Sporting Goods">Sporting Goods</MenuItem>
+              <MenuItem value="Tops">Tops</MenuItem>
             </Select>
           </FormControl>
           <TextField
@@ -204,34 +238,35 @@ const Product: React.FC = () => {
             value={formik.values.price}
             onChange={formik.handleChange}
             error={formik.touched.price && Boolean(formik.errors.price)}
-            helperText={formik.touched.price && formik.errors.price}
+            helperText={
+              formik.touched.price && typeof formik.errors.price === "string"
+                ? formik.errors.price
+                : ""
+            }
           />
           <TextField
             id="image"
             name="image"
             type="file"
             label="Image"
-            accept="image/*"
             InputLabelProps={{
               shrink: true,
             }}
-            // onChange={(event) => {
-            //   formik.setFieldValue(
-            //     "image",
-            //     event.currentTarget.files ? event.currentTarget.files[0] : null
-            //   );
-            // }}
             onChange={async (event) => {
-              const file = event.currentTarget.files
-                ? event.currentTarget.files[0]
-                : null;
+              const input = event.target as HTMLInputElement;
+              const file = input.files ? input.files[0] : null;
               if (file) {
                 const resizedImage = await resizeFile(file);
                 formik.setFieldValue("image", resizedImage);
+                formik.setFieldValue("imageName", file.name);
               }
             }}
             error={formik.touched.image && Boolean(formik.errors.image)}
-            helperText={formik.touched.image && formik.errors.image}
+            helperText={
+              formik.touched.image && typeof formik.errors.image === "string"
+                ? formik.errors.image
+                : ""
+            }
           />
           <Button color="primary" variant="contained" fullWidth type="submit">
             Save

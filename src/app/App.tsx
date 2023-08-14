@@ -11,7 +11,7 @@ function App() {
     <Theme>
       <Topbar />
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/index.html" element={<Home />} />
         <Route path="/product" element={<Product />} />
         <Route path="/browse" element={<Browse />} />
         <Route path="/lot" element={<Lot />} />

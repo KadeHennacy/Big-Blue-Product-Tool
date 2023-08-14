@@ -12,9 +12,10 @@ import {
   DialogTitle,
   Button,
 } from "@mui/material";
+import { RootState } from "../../app/Store";
 
 const Browse: React.FC = () => {
-  const lots = useSelector((state) => state.browse.lots);
+  const lots = useSelector((state: RootState) => state.browse.lots);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const theme = useTheme();
@@ -79,16 +80,55 @@ const Browse: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <h2>All Lots</h2>
+      <h2
+        style={{
+          marginBottom: "5px",
+          paddingBottom: "5px",
+          borderBottom: "1px solid #ccc",
+        }}
+      >
+        All Lots
+      </h2>
       {lots.map((lot, index) => (
         <Box key={lot.id} onClick={() => handleLotClick(index)}>
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
+              borderBottom: "1px solid #ccc",
+              paddingY: 1,
             }}
           >
-            <h3>{formatDate(lot.lastModified)}</h3>
+            <Box
+              sx={{
+                display: "flex",
+              }}
+            >
+              <Box
+                sx={{
+                  width: 80,
+                  height: 80,
+                  overflow: "hidden",
+                  marginRight: 2,
+                }}
+              >
+                <img
+                  style={{
+                    objectFit: "cover",
+                    display: "block",
+                    height: "100%",
+                    width: "100%",
+                  }}
+                  src={lot.thumbnail}
+                  alt={`Thumbnail for lot ${lot.id}`}
+                />
+              </Box>
+              <Box>
+                <h3>{formatDate(lot.lastModified)}</h3>
+                <p>Lot ID: {lot.id}</p>
+                <p>Number of Items: {lot.items.length}</p>
+              </Box>
+            </Box>
             <DeleteIcon
               sx={{
                 color: theme.palette.error.main,
@@ -100,10 +140,6 @@ const Browse: React.FC = () => {
               }}
             />
           </Box>
-          <img src={lot.thumbnail} alt={`Thumbnail for lot ${lot.id}`} />
-          <p>Lot ID: {lot.id}</p>
-          <p>Number of Items: {lot.items.length}</p>
-          {/* You can style this Box to look like a clickable card or add a button for better UX */}
         </Box>
       ))}
     </Box>
