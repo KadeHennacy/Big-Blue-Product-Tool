@@ -37,6 +37,13 @@ const Topbar = () => {
 
   const dispatch = useDispatch();
 
+  const email = "bigbluethriftstore@gmail.com";
+  const subject = `New lot with ${products.length} items`;
+  const body = "Please find attached the details of the new lot."; // You can customize this message as needed
+  const mailto = `mailto:${email}?subject=${encodeURIComponent(
+    subject
+  )}&body=${encodeURIComponent(body)}`;
+
   const handleNewLot = () => {
     dispatch(addLot());
     navigate("/product");
@@ -98,12 +105,9 @@ const Topbar = () => {
 
     //Open email client
 
-    const email = "bigbluethriftstore@gmail.com";
-    const subject = `New lot with ${products.length} items`;
-    const body = "Please find attached the details of the new lot."; // You can customize this message as needed
-    window.location.href = `mailto:${email}?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(body)}`;
+    setTimeout(() => {
+      window.location.href = mailto;
+    }, 250);
   };
 
   const renderButtons = () => {

@@ -9,7 +9,6 @@ import {
   MenuItem,
   InputLabel,
   FormControl,
-  Snackbar,
   Box,
 } from "@mui/material";
 import { addProduct, updateProduct } from "../browse/browse";
@@ -76,13 +75,6 @@ const Product: React.FC = () => {
   );
   const isEditing = useSelector((state: RootState) => state.browse.isEditing);
   const navigate = useNavigate();
-  const [openSnackbar, setOpenSnackbar] = React.useState(false);
-  const handleOpenSnackbar = () => {
-    setOpenSnackbar(true);
-  };
-  const handleCloseSnackbar = (event, reason) => {
-    setOpenSnackbar(false);
-  };
   const resizeFile = (file) =>
     new Promise((resolve) => {
       Resizer.imageFileResizer(
@@ -134,11 +126,8 @@ const Product: React.FC = () => {
           `adding product current lot ${currentLotIndex} current product ${currentProductIndex}`
         );
         dispatch(addProduct(newProduct));
-        handleOpenSnackbar();
       }
-
-      formik.resetForm();
-      console.log("Form submitted");
+      navigate("/lot");
     },
     enableReinitialize: true,
   });
@@ -149,12 +138,6 @@ const Product: React.FC = () => {
 
   return (
     <Box sx={{ padding: 3 }}>
-      <Snackbar
-        open={openSnackbar}
-        autoHideDuration={6000}
-        onClose={handleCloseSnackbar}
-        message="Item saved successfully"
-      />
       <form onSubmit={formik.handleSubmit}>
         <Box
           sx={{
